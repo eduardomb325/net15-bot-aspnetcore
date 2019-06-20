@@ -18,12 +18,7 @@ namespace SimpleBotCore.Controllers
         {
             this._bot = bot;
         }
-
-        [HttpGet]
-        public string Get()
-        {
-            return "Hello World";
-        }
+        
 
         // POST api/messages
         [HttpPost]

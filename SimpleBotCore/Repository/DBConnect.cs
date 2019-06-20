@@ -4,6 +4,7 @@ using SimpleBotCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SimpleBotCore.Repository
 {
@@ -42,24 +43,38 @@ namespace SimpleBotCore.Repository
 
         public Users InsertUsers(Users user)
         {
-            var col = db.GetCollection<Users>("users");
-
-            var filter = Builders<BsonDocument>.Filter.Eq("userId" , user.UserId);
-
-            var userFound = col.Find(filter).FirstOrDefault();
-            
-            if (userFound.Equals(null))
+            try
             {
-                user.MessagesCount = 1;
-                userFound = user;
-                col.InsertOne(user);
+
+                var col = db.GetCollection<Users>("users");
+
+                var filter = Builders<Users>
+                                .Filter
+                                .Eq(x => x.UserId, user.UserId);
+
+                var userFound = col.Find(filter).FirstOrDefault();
+
+                if (userFound == null)
+                {
+                    user.Id = ObjectId.GenerateNewId();
+                    user.MessagesCount = 1;
+
+                    col.InsertOne(user);
+
+                    return user;
+                }
+
+                userFound.MessagesCount += 1;
+
+                col.ReplaceOne(filter, userFound);
+
+                return userFound;
+
+            } catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+
             }
-
-            userFound.MessagesCount = userFound.MessagesCount + 1;
-
-            col.ReplaceOne(filter, userFound);
-
-            return userFound;
         }
 
         public static IMongoDatabase GetMongoDatabase(string database)
